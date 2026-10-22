@@ -1,0 +1,317 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>中央盆地西側氣候圖</title>
+<style>
+:root {
+  --bg: #faf9f6; --panel: #ffffff; --fg: #1f1e1b; --muted: #6b6860; --line: #e4e1d9;
+  --grid: #eeebe4; --axis: #c9c5bb; --ref: #8f8a7e; --pop: #ffffff; --shadow: 0 4px 16px rgba(0,0,0,.08);
+  --rain: #3d7bb8; --temp: #c8553d; --season: rgba(31,30,27,.06);
+  --sans: "PingFang TC", "Noto Sans TC", "Microsoft JhengHei", system-ui, sans-serif;
+  --serif: "Songti TC", "Noto Serif TC", "PMingLiU", Georgia, serif;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #191918; --panel: #222220; --fg: #ecebe6; --muted: #a29f96; --line: #383733;
+    --grid: #2e2d2a; --axis: #4a4844; --ref: #8d897f; --pop: #2a2a27; --shadow: 0 4px 16px rgba(0,0,0,.4);
+    --rain: #6aa5dc; --temp: #e2795f; --season: rgba(236,235,230,.07);
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #191918; --panel: #222220; --fg: #ecebe6; --muted: #a29f96; --line: #383733;
+  --grid: #2e2d2a; --axis: #4a4844; --ref: #8d897f; --pop: #2a2a27; --shadow: 0 4px 16px rgba(0,0,0,.4);
+  --rain: #6aa5dc; --temp: #e2795f; --season: rgba(236,235,230,.07);
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; background: var(--bg); color: var(--fg); }
+body { font-family: var(--sans); font-size: 15px; line-height: 1.5; }
+.cb { max-width: 1200px; margin: 0 auto; padding: 24px 16px 40px; display: flex; flex-direction: column; gap: 20px; }
+.cb-title { font-family: var(--serif); font-weight: 400; font-size: 28px; margin: 0; }
+.cb-lede { color: var(--muted); margin: 6px 0 0; max-width: 46rem; line-height: 1.65; }
+.cb-tabs { display: flex; flex-wrap: wrap; gap: 6px; }
+.cb-tab { font: inherit; font-size: 14px; padding: 5px 14px; border: 1px solid var(--line); border-radius: 999px; background: var(--panel); color: var(--fg); cursor: pointer; }
+.cb-tab[aria-selected="true"] { background: var(--fg); color: var(--bg); border-color: var(--fg); }
+.cb-info { display: flex; flex-wrap: wrap; gap: 4px 16px; align-items: center; font-size: 13px; color: var(--muted); }
+.cb-legend { display: flex; flex-wrap: wrap; gap: 4px 14px; }
+.cb-sw { display: inline-block; width: 12px; height: 12px; border-radius: 3px; vertical-align: -1px; margin-right: 5px; }
+.cb-sw-p { background: var(--rain); }
+.cb-sw-t { background: var(--temp); height: 2px; vertical-align: 3px; }
+.cb-sw-s { background: var(--season); border: 1px solid var(--line); }
+.cb-sw-d { height: 0; border-top: 1.5px dashed var(--ref); border-radius: 0; vertical-align: 3px; }
+.cb-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 21rem), 1fr)); gap: 14px; }
+.cb-card { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 16px; display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+.cb-card[hidden] { display: none; }
+.cb-head { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
+.cb-card h3 { font-size: 16px; font-weight: 500; margin: 0; }
+.cb-card h3 small { font-weight: 400; color: var(--muted); font-size: 12px; margin-left: 6px; }
+.cb-k { font-family: var(--serif); font-size: 26px; line-height: 1; }
+.cb-stats, .cb-why, .cb-ref { margin: 0; font-size: 13px; font-variant-numeric: tabular-nums; line-height: 1.55; }
+.cb-stats b { font-weight: 600; }
+.cb-why, .cb-ref { color: var(--muted); }
+.cb-ref { border-top: 1px solid var(--line); padding-top: 6px; }
+.cb-chart { position: relative; min-height: 220px; }
+.cb-chart svg { display: block; overflow: visible; }
+.cb-tick { font-size: 12px; fill: var(--muted); font-variant-numeric: tabular-nums; }
+.cb-tip { position: absolute; pointer-events: none; background: var(--pop); border: 1px solid var(--line); border-radius: 8px; box-shadow: var(--shadow); padding: 5px 9px; font-size: 12px; white-space: nowrap; font-variant-numeric: tabular-nums; z-index: 2; }
+.cb-tip-h { color: var(--muted); margin-bottom: 2px; }
+.cb-sec h2 { font-size: 17px; font-weight: 500; margin: 0 0 4px; }
+.cb-note { margin: 0 0 10px; color: var(--muted); font-size: 13px; }
+.cb-tablebox { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; overflow: auto; }
+.cb-table { width: 100%; border-collapse: collapse; font-size: 13px; font-variant-numeric: tabular-nums; }
+.cb-table th, .cb-table td { text-align: left; padding: 6px 10px; border-bottom: 1px solid var(--line); white-space: nowrap; }
+.cb-table th { color: var(--muted); font-weight: 500; background: var(--panel); }
+.cb-table .num { text-align: right; }
+.cb-table tbody tr { cursor: pointer; }
+.cb-table tbody tr:hover td { background: var(--season); }
+.cb-table tbody tr.on td { background: var(--season); font-weight: 500; }
+.cb-method { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 16px; line-height: 1.75; }
+.cb-method p { margin: 0 0 10px; }
+.cb-method p:last-child { margin-bottom: 0; }
+</style>
+</head>
+<body>
+<div class="cb">
+  <header>
+    <h1 class="cb-title">中央盆地西側氣候圖</h1>
+    <p class="cb-lede">第四紀元，西側＋西北側，按扇區切換。柱是月降水，線是月均溫，淡色底是當地的季風季；虛線是 60 mm——只要有一個月掉到線下，就不是 Af。</p>
+  </header>
+
+  <nav class="cb-tabs" role="tablist" aria-label="扇區">
+    <button class="cb-tab" role="tab" data-id="n-outer" data-sector="北翼外段">北翼外段</button>
+    <button class="cb-tab" role="tab" data-id="n-narrow" data-sector="北翼窄段">北翼窄段</button>
+    <button class="cb-tab" role="tab" data-id="eq" data-sector="赤道段">赤道段</button>
+    <button class="cb-tab" role="tab" data-id="s-inner" data-sector="南翼內段">南翼內段</button>
+    <button class="cb-tab" role="tab" data-id="s-mid" data-sector="南翼中段">南翼中段</button>
+    <button class="cb-tab" role="tab" data-id="s-outer" data-sector="南翼外段">南翼外段</button>
+  </nav>
+
+  <div class="cb-info">
+    <span>緯度 <span class="cb-lat">—</span></span>
+    <span>平原寬 <span class="cb-width">—</span></span>
+    <span class="cb-legend">
+      <span><i class="cb-sw cb-sw-p"></i>月降水（mm，左軸）</span>
+      <span><i class="cb-sw cb-sw-t"></i>月均溫（℃，右軸）</span>
+      <span><i class="cb-sw cb-sw-s"></i>季風季（赤道段為南信風期）</span>
+      <span><i class="cb-sw cb-sw-d"></i>60 mm</span>
+    </span>
+  </div>
+
+  <div class="cb-grid">
+    <article class="cb-card" data-band="近海平原"><div class="cb-head"><h3>近海平原</h3><span class="cb-k"></span></div><p class="cb-stats"></p><p class="cb-why"></p><div class="cb-chart"></div><p class="cb-ref"></p></article>
+    <article class="cb-card" data-band="內陸平原"><div class="cb-head"><h3>內陸平原</h3><span class="cb-k"></span></div><p class="cb-stats"></p><p class="cb-why"></p><div class="cb-chart"></div><p class="cb-ref"></p></article>
+    <article class="cb-card" data-band="西北角"><div class="cb-head"><h3>西北角<small>內陸平原盡頭</small></h3><span class="cb-k"></span></div><p class="cb-stats"></p><p class="cb-why"></p><div class="cb-chart"></div><p class="cb-ref"></p></article>
+    <article class="cb-card" data-band="山前"><div class="cb-head"><h3>山前<small>200 – 800 m</small></h3><span class="cb-k"></span></div><p class="cb-stats"></p><p class="cb-why"></p><div class="cb-chart"></div><p class="cb-ref"></p></article>
+    <article class="cb-card" data-band="迎風坡下段"><div class="cb-head"><h3>迎風坡下段<small>800 – 2,000 m</small></h3><span class="cb-k"></span></div><p class="cb-stats"></p><p class="cb-why"></p><div class="cb-chart"></div><p class="cb-ref"></p></article>
+  </div>
+
+  <section class="cb-sec">
+    <h2>全部點位一覽</h2>
+    <p class="cb-note">點一行跳到那個扇區。季節占比：南北兩翼是季風季，赤道段是南信風期（5 – 10 月）。</p>
+    <div class="cb-tablebox">
+      <table class="cb-table">
+        <thead><tr><th>點位</th><th>柯本</th><th class="num">年降水 mm</th><th class="num">年均溫 ℃</th><th class="num">最乾月 mm</th><th class="num">季節占比 %</th></tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="cb-sec">
+    <h2>這些月值怎麼來的</h2>
+    <div class="cb-method">
+      <p>詞條給的是區間。這裡每個點位取區間中段作代表，再把年雨量拆成三份：信風峰（北半球 1 月、南半球 7 月）、季風峰（北半球 7 – 8 月、南半球 1 – 2 月）、全年底量。赤道段是兩半球信風各一峰，加上雨帶過頂時的兩個小對流峰。三份的比例按詞條的季節占比去調，直到算出來的柯本和詞條一致。氣溫用正弦曲線，峰值放在季風來臨之前。所以每個月的具體形狀是示意，能拿來對照詞條的是年總量、季節占比和柯本。</p>
+      <p>季節以雨帶所在半球界定，雨帶滯後太陽 1 – 2 個月：北半球 5 – 10 月是季風季、11 – 4 月是信風季；南半球正好相反；赤道段改稱北信風期、南信風期。</p>
+      <p>柯本判斷順序：先看年降水是否低於乾燥門檻（20 × 年均溫，再加 280／140／0，取決於夏半年雨量占比是 ≥ 70%、居中、還是 &lt; 30%），低於就是 B。不是 B 的話，最冷月 ≥ 18℃ 才算 A：最乾月 ≥ 60 mm 為 Af；否則最乾月 ≥ 100 − 年降水 ÷ 25 為 Am；再低為 Aw，乾月多半落在高日季時記 As。最冷月低於 18℃ 的迎風坡按溫度歸 C，那是熱帶山地，不代表離開了熱帶。</p>
+      <p>兩處代表點要注意：北翼外段內陸本身是一條往西北角變乾的梯度，所以西北角另立一點；南翼外段內陸的詞條區間正好跨過乾燥門檻，詞條寫 Aw → BSh，取中段後落在 BSh 一側。</p>
+    </div>
+  </section>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.9.0/d3.min.js"></script>
+<script>
+const SITES = [{"site":"北翼外段·近海平原","sector":"北翼外段","band":"近海平原","lat":"12–22°N","hemi":"N","so":1,"bo":1,"p":[220,180,103,55,61,118,183,183,123,82,110,181],"t":[27.0,28.0,29.0,29.7,30.0,29.7,29.0,28.0,27.0,26.3,26.0,26.3],"season":["信風季","信風季","信風季","信風季","季風季","季風季","季風季","季風季","季風季","季風季","信風季","信風季"]},{"site":"北翼外段·內陸平原","sector":"北翼外段","band":"內陸平原","lat":"12–22°N","hemi":"N","so":1,"bo":2,"p":[81,69,47,39,67,145,228,228,147,74,55,70],"t":[24.5,26.5,28.5,30.0,30.5,30.0,28.5,26.5,24.5,23.0,22.5,23.0],"season":["信風季","信風季","信風季","信風季","季風季","季風季","季風季","季風季","季風季","季風季","信風季","信風季"]},{"site":"北翼外段·西北角","sector":"北翼外段","band":"西北角","lat":"12–22°N","hemi":"N","so":1,"bo":3,"p":[18,16,11,9,19,68,147,147,68,20,12,16],"t":[24.8,27.0,29.2,30.9,31.5,30.9,29.2,27.0,24.8,23.1,22.5,23.1],"season":["信風季","信風季","信風季","信風季","季風季","季風季","季風季","季風季","季風季","季風季","信風季","信風季"]},{"site":"北翼外段·山前","sector":"北翼外段","band":"山前","lat":"12–22°N","hemi":"N","so":1,"bo":4,"p":[133,111,71,54,94,209,331,332,212,106,84,113],"t":[22.0,23.5,25.0,26.1,26.5,26.1,25.0,23.5,22.0,20.9,20.5,20.9],"season":["信風季","信風季","信風季","信風季","季風季","季風季","季風季","季風季","季風季","季風季","信風季","信風季"]},{"site":"北翼外段·迎風坡下段","sector":"北翼外段","band":"迎風坡下段","lat":"12–22°N","hemi":"N","so":1,"bo":5,"p":[198,165,102,72,117,256,404,405,260,135,118,167],"t":[17.8,19.0,20.2,21.2,21.5,21.2,20.2,19.0,17.8,16.8,16.5,16.8],"season":["信風季","信風季","信風季","信風季","季風季","季風季","季風季","季風季","季風季","季風季","信風季","信風季"]},{"site":"北翼窄段·近海平原","sector":"北翼窄段","band":"近海平原","lat":"5–12°N","hemi":"N","so":2,"bo":1,"p":[241,199,117,67,79,151,232,233,157,101,125,200],"t":[28.7,29.3,29.9,30.2,30.2,29.9,29.3,28.7,28.1,27.8,27.8,28.1],"season":["信風季","信風季","信風季","信風季","季風季","季風季","季風季","季風季","季風季","季風季","信風季","信風季"]},{"site":"北翼窄段·山前","sector":"北翼窄段","band":"山前","lat":"5–12°N","hemi":"N","so":2,"bo":4,"p":[426,351,206,112,115,202,302,303,211,155,216,352],"t":[25.9,26.5,27.1,27.4,27.4,27.1,26.5,25.9,25.3,25.0,25.0,25.3],"season":["信風季","信風季","信風季","信風季","季風季","季風季","季風季","季風季","季風季","季風季","信風季","信風季"]},{"site":"北翼窄段·迎風坡下段","sector":"北翼窄段","band":"迎風坡下段","lat":"5–12°N","hemi":"N","so":2,"bo":5,"p":[549,452,265,144,148,260,389,390,272,199,278,454],"t":[20.7,21.3,21.9,22.2,22.2,21.9,21.3,20.7,20.1,19.8,19.8,20.1],"season":["信風季","信風季","信風季","信風季","季風季","季風季","季風季","季風季","季風季","季風季","信風季","信風季"]},{"site":"赤道段·近海平原","sector":"赤道段","band":"近海平原","lat":"5°N–3°S","hemi":"E","so":3,"bo":1,"p":[198,176,159,171,187,235,269,228,164,154,171,187],"t":[28.2,28.6,29.4,29.8,29.4,28.6,28.2,28.6,29.4,29.8,29.4,28.6],"season":["北信風期","北信風期","北信風期","北信風期","南信風期","南信風期","南信風期","南信風期","南信風期","南信風期","北信風期","北信風期"]},{"site":"赤道段·內陸平原","sector":"赤道段","band":"內陸平原","lat":"5°N–3°S","hemi":"E","so":3,"bo":2,"p":[168,157,170,200,186,188,204,178,151,179,194,175],"t":[27.9,28.3,29.1,29.4,29.1,28.3,27.9,28.3,29.1,29.4,29.1,28.3],"season":["北信風期","北信風期","北信風期","北信風期","南信風期","南信風期","南信風期","南信風期","南信風期","南信風期","北信風期","北信風期"]},{"site":"赤道段·山前","sector":"赤道段","band":"山前","lat":"5°N–3°S","hemi":"E","so":3,"bo":4,"p":[295,257,206,202,241,330,385,324,223,195,223,268],"t":[25.8,26.1,26.9,27.2,26.9,26.1,25.8,26.1,26.9,27.2,26.9,26.1],"season":["北信風期","北信風期","北信風期","北信風期","南信風期","南信風期","南信風期","南信風期","南信風期","南信風期","北信風期","北信風期"]},{"site":"赤道段·迎風坡下段","sector":"赤道段","band":"迎風坡下段","lat":"5°N–3°S","hemi":"E","so":3,"bo":5,"p":[422,367,294,289,344,471,550,463,319,278,319,383],"t":[20.8,21.1,21.9,22.2,21.9,21.1,20.8,21.1,21.9,22.2,21.9,21.1],"season":["北信風期","北信風期","北信風期","北信風期","南信風期","南信風期","南信風期","南信風期","南信風期","南信風期","北信風期","北信風期"]},{"site":"南翼內段·近海平原","sector":"南翼內段","band":"近海平原","lat":"3–8°S","hemi":"S","so":4,"bo":1,"p":[174,174,142,119,147,220,260,215,132,85,94,137],"t":[29.3,28.7,28.1,27.6,27.4,27.6,28.1,28.7,29.3,29.8,29.9,29.8],"season":["季風季","季風季","季風季","季風季","信風季","信風季","信風季","信風季","信風季","信風季","季風季","季風季"]},{"site":"南翼內段·內陸平原","sector":"南翼內段","band":"內陸平原","lat":"3–8°S","hemi":"S","so":4,"bo":2,"p":[291,291,200,102,69,110,145,105,48,42,97,200],"t":[28.6,27.8,27.1,26.8,26.8,27.1,27.8,28.6,29.3,29.6,29.6,29.3],"season":["季風季","季風季","季風季","季風季","信風季","信風季","信風季","信風季","信風季","信風季","季風季","季風季"]},{"site":"南翼內段·山前","sector":"南翼內段","band":"山前","lat":"3–8°S","hemi":"S","so":4,"bo":4,"p":[162,163,139,138,217,359,434,354,203,107,95,129],"t":[25.9,25.1,24.4,24.1,24.1,24.4,25.1,25.9,26.6,26.9,26.9,26.6],"season":["季風季","季風季","季風季","季風季","信風季","信風季","信風季","信風季","信風季","信風季","季風季","季風季"]},{"site":"南翼內段·迎風坡下段","sector":"南翼內段","band":"迎風坡下段","lat":"3–8°S","hemi":"S","so":4,"bo":5,"p":[220,222,189,188,296,488,590,482,276,146,130,175],"t":[20.9,20.1,19.4,19.1,19.1,19.4,20.1,20.9,21.6,21.9,21.9,21.6],"season":["季風季","季風季","季風季","季風季","信風季","信風季","信風季","信風季","信風季","信風季","季風季","季風季"]},{"site":"南翼中段·近海平原","sector":"南翼中段","band":"近海平原","lat":"8–16°S","hemi":"S","so":5,"bo":1,"p":[169,170,121,87,114,185,224,184,106,58,65,116],"t":[29.0,28.0,27.0,26.3,26.0,26.3,27.0,28.0,29.0,29.7,30.0,29.7],"season":["季風季","季風季","季風季","季風季","信風季","信風季","信風季","信風季","信風季","信風季","季風季","季風季"]},{"site":"南翼中段·內陸平原","sector":"南翼中段","band":"內陸平原","lat":"8–16°S","hemi":"S","so":5,"bo":2,"p":[239,240,160,79,45,44,48,42,32,36,76,159],"t":[28.6,26.4,24.5,23.4,23.4,24.5,26.4,28.6,30.5,31.6,31.6,30.5],"season":["季風季","季風季","季風季","季風季","信風季","信風季","信風季","信風季","信風季","信風季","季風季","季風季"]},{"site":"南翼中段·山前","sector":"南翼中段","band":"山前","lat":"8–16°S","hemi":"S","so":5,"bo":4,"p":[313,313,191,78,52,97,133,96,39,25,72,190],"t":[25.1,23.9,22.7,22.1,22.1,22.7,23.9,25.1,26.3,26.9,26.9,26.3],"season":["季風季","季風季","季風季","季風季","信風季","信風季","信風季","信風季","信風季","信風季","季風季","季風季"]},{"site":"南翼中段·迎風坡下段","sector":"南翼中段","band":"迎風坡下段","lat":"8–16°S","hemi":"S","so":5,"bo":5,"p":[413,413,279,146,102,123,141,119,80,72,134,276],"t":[20.1,18.9,17.7,17.1,17.1,17.7,18.9,20.1,21.3,21.9,21.9,21.3],"season":["季風季","季風季","季風季","季風季","信風季","信風季","信風季","信風季","信風季","信風季","季風季","季風季"]},{"site":"南翼外段·近海平原","sector":"南翼外段","band":"近海平原","lat":"16–20°S","hemi":"S","so":6,"bo":1,"p":[163,163,99,64,87,139,166,139,85,49,49,96],"t":[29.1,27.8,26.2,24.9,24.1,24.1,24.9,26.2,27.8,29.1,29.9,29.9],"season":["季風季","季風季","季風季","季風季","信風季","信風季","信風季","信風季","信風季","信風季","季風季","季風季"]},{"site":"南翼外段·內陸平原","sector":"南翼外段","band":"內陸平原","lat":"16–20°S","hemi":"S","so":6,"bo":2,"p":[192,192,101,33,16,18,19,17,14,14,32,101],"t":[27.3,24.7,22.5,21.2,21.2,22.5,24.7,27.3,29.5,30.8,30.8,29.5],"season":["季風季","季風季","季風季","季風季","信風季","信風季","信風季","信風季","信風季","信風季","季風季","季風季"]},{"site":"南翼外段·山前","sector":"南翼外段","band":"山前","lat":"16–20°S","hemi":"S","so":6,"bo":4,"p":[250,250,132,45,24,28,31,27,20,19,43,131],"t":[24.4,22.6,21.0,20.1,20.1,21.0,22.6,24.4,26.0,26.9,26.9,26.0],"season":["季風季","季風季","季風季","季風季","信風季","信風季","信風季","信風季","信風季","信風季","季風季","季風季"]},{"site":"南翼外段·迎風坡下段","sector":"南翼外段","band":"迎風坡下段","lat":"16–20°S","hemi":"S","so":6,"bo":5,"p":[358,358,190,68,42,52,60,52,37,31,63,189],"t":[19.4,17.6,16.0,15.1,15.1,16.0,17.6,19.4,21.0,21.9,21.9,21.0],"season":["季風季","季風季","季風季","季風季","信風季","信風季","信風季","信風季","信風季","信風季","季風季","季風季"]}];
+const REFS = {"北翼外段·近海平原":{"plain_width":"至約 1,000 km","precip_range":"1,400 – 1,800","temp_range":"27 – 29（最冷月 24 – 26）","season_note":"信風季略多","koppen_note":""},"北翼外段·內陸平原":{"plain_width":"至約 1,000 km","precip_range":"1,500 → 向西北角降至 400 – 700","temp_range":"25 – 28（最冷月 20 – 23；季風前 38℃+）","season_note":"季風季 60 – 75%","koppen_note":"Am → Aw"},"北翼外段·西北角":{"plain_width":"至約 1,000 km","precip_range":"400 – 700","temp_range":"25 – 28（西北角最熱最乾）","season_note":"季風季 60 – 75%","koppen_note":"BSh"},"北翼外段·山前":{"plain_width":"至約 1,000 km","precip_range":"1,500 – 2,200","temp_range":"22 – 25","season_note":"季風季","koppen_note":""},"北翼外段·迎風坡下段":{"plain_width":"至約 1,000 km","precip_range":"2,000 – 2,800","temp_range":"16 – 22","season_note":"","koppen_note":""},"北翼窄段·近海平原":{"plain_width":"約 300 km","precip_range":"1,700 – 2,100","temp_range":"28 – 30","season_note":"兩季接近平衡","koppen_note":"Af，向 12°N 轉 Am"},"北翼窄段·山前":{"plain_width":"約 300 km","precip_range":"2,600 – 3,300","temp_range":"25 – 27.5","season_note":"信風季 50 – 60%","koppen_note":"Af，向 12°N 轉 Am"},"北翼窄段·迎風坡下段":{"plain_width":"約 300 km","precip_range":"3,300 – 4,300","temp_range":"18 – 24","season_note":"","koppen_note":""},"赤道段·近海平原":{"plain_width":"約 600 km","precip_range":"2,000 – 2,600","temp_range":"28 – 30（年溫差 1 – 2℃）","season_note":"無乾季、不對稱雙峰","koppen_note":"Af"},"赤道段·內陸平原":{"plain_width":"約 600 km","precip_range":"1,900 – 2,400","temp_range":"28 – 29.5","season_note":"無乾季","koppen_note":"Af"},"赤道段·山前":{"plain_width":"約 600 km","precip_range":"2,800 – 3,500","temp_range":"25 – 28","season_note":"無乾季","koppen_note":"Af"},"赤道段·迎風坡下段":{"plain_width":"約 600 km","precip_range":"4,000 – 5,000+","temp_range":"18 – 25","season_note":"","koppen_note":""},"南翼內段·近海平原":{"plain_width":"600 → 1,200 km","precip_range":"1,700 – 2,100","temp_range":"28 – 29.5","season_note":"信風季略多","koppen_note":"Af，向 8°S 轉 Am"},"南翼內段·內陸平原":{"plain_width":"600 → 1,200 km","precip_range":"1,500 – 1,900","temp_range":"27.5 – 29","season_note":"季風季 60 – 70%","koppen_note":"Am"},"南翼內段·山前":{"plain_width":"600 → 1,200 km","precip_range":"2,200 – 2,800","temp_range":"24 – 27","season_note":"信風季 60 – 70%","koppen_note":"Af，向 8°S 轉 Am"},"南翼內段·迎風坡下段":{"plain_width":"600 → 1,200 km","precip_range":"3,000 – 3,800","temp_range":"17 – 24","season_note":"","koppen_note":""},"南翼中段·近海平原":{"plain_width":"1,200 → 2,500 km","precip_range":"1,400 – 1,800","temp_range":"27 – 29","season_note":"信風季略多","koppen_note":"Am"},"南翼中段·內陸平原":{"plain_width":"1,200 → 2,500 km","precip_range":"1,000 – 1,400","temp_range":"26.5 – 28.5（最冷月 22 – 24）","season_note":"季風季 70 – 80%","koppen_note":"Aw"},"南翼中段·山前":{"plain_width":"1,200 → 2,500 km","precip_range":"1,300 – 1,900","temp_range":"23 – 26","season_note":"季風季 65 – 75%（翻轉）","koppen_note":"Aw"},"南翼中段·迎風坡下段":{"plain_width":"1,200 → 2,500 km","precip_range":"1,800 – 2,800","temp_range":"16 – 23","season_note":"","koppen_note":""},"南翼外段·近海平原":{"plain_width":"2,500 → 3,000 km","precip_range":"1,100 – 1,500","temp_range":"26 – 28（年溫差 5 – 7℃）","season_note":"信風季略多","koppen_note":""},"南翼外段·內陸平原":{"plain_width":"2,500 → 3,000 km","precip_range":"600 – 900","temp_range":"25 – 27（最冷月 19 – 22；季風前 38℃+）","season_note":"季風季 75 – 85%","koppen_note":"Aw → BSh"},"南翼外段·山前":{"plain_width":"2,500 → 3,000 km","precip_range":"800 – 1,200","temp_range":"22 – 25","season_note":"季風季 75 – 85%","koppen_note":""},"南翼外段·迎風坡下段":{"plain_width":"2,500 → 3,000 km","precip_range":"1,200 – 1,800","temp_range":"15 – 22","season_note":"","koppen_note":""}};
+
+function summarize(s) {
+  const p = s.p, t = s.t, h = s.hemi;
+  const P = d3.sum(p), T = d3.mean(t);
+  const summer = h === 'S' ? [10, 11, 12, 1, 2, 3] : [4, 5, 6, 7, 8, 9];
+  const inSummer = (m) => summer.includes(m);
+  const summerShare = d3.sum(p.filter((_, i) => inSummer(i + 1))) / P;
+  const bTh = 20 * T + (summerShare >= 0.7 ? 280 : summerShare < 0.3 ? 0 : 140);
+  const driest = d3.min(p), coldest = d3.min(t), hottest = d3.max(t);
+  const amTh = 100 - P / 25;
+  let k;
+  if (P < bTh) k = (P < bTh / 2 ? 'BW' : 'BS') + (T >= 18 ? 'h' : 'k');
+  else if (coldest >= 18) {
+    if (driest >= 60) k = 'Af';
+    else if (driest >= amTh) k = 'Am';
+    else {
+      const dry = d3.range(1, 13).filter((m) => p[m - 1] < 60);
+      const ns = dry.filter(inSummer).length;
+      k = ns > dry.length - ns ? 'As' : 'Aw';
+    }
+  } else {
+    const sp = p.filter((_, i) => inSummer(i + 1)), wp = p.filter((_, i) => !inSummer(i + 1));
+    let second = 'f';
+    if (d3.min(sp) < 40 && d3.min(sp) < d3.max(wp) / 3) second = 's';
+    else if (d3.min(wp) < d3.max(sp) / 10) second = 'w';
+    k = 'C' + second + (hottest >= 22 ? 'a' : 'b');
+  }
+  const seasonName = h === 'E' ? '南信風期' : '季風季';
+  const share = Math.round(100 * d3.sum(p.filter((_, i) => s.season[i] === seasonName)) / P);
+  return { ...s, annual: P, meanT: Math.round(T * 10) / 10, coldest, driest, driestMonth: p.indexOf(driest) + 1,
+    koppen: k, bTh: Math.round(bTh), amTh: Math.round(amTh), seasonName, share };
+}
+
+const SUM = SITES.map(summarize).sort((a, b) => a.so - b.so || a.bo - b.bo);
+const SC = {
+  pMax: Math.ceil(d3.max(SITES, (s) => d3.max(s.p)) / 100) * 100,
+  tMin: Math.floor(d3.min(SITES, (s) => d3.min(s.t))) - 1,
+  tMax: Math.ceil(d3.max(SITES, (s) => d3.max(s.t))) + 1,
+};
+const tabs = [...document.querySelectorAll('.cb-tab')];
+const byId = Object.fromEntries(tabs.map((b) => [b.dataset.id, b.dataset.sector]));
+let sector = byId[location.hash.slice(1)] || '赤道段';
+
+const txt = (s) => document.createTextNode(s);
+const el = (tag, s) => { const e = document.createElement(tag); e.textContent = s; return e; };
+
+function drawChart(box, s) {
+  box.replaceChildren();
+  const W = box.clientWidth;
+  if (!W) return;
+  const H = 220;
+  const svg = d3.select(box).append('svg').attr('width', '100%').attr('height', H).attr('viewBox', `0 0 ${W} ${H}`);
+  const measure = (str) => { const t = svg.append('text').attr('class', 'cb-tick').text(str); const w = t.node().getComputedTextLength(); t.remove(); return w; };
+  const yP = d3.scaleLinear([0, SC.pMax], [0, 1]);
+  const yT = d3.scaleLinear([SC.tMin, SC.tMax], [0, 1]);
+  const pTicks = yP.ticks(4), tTicks = yT.ticks(4);
+  const ml = Math.ceil(d3.max(pTicks, (v) => measure(String(v)))) + 8;
+  const mr = Math.ceil(d3.max(tTicks, (v) => measure(String(v)))) + 8;
+  const mt = 8, mb = 22, iw = W - ml - mr, ih = H - mt - mb;
+  yP.range([mt + ih, mt]); yT.range([mt + ih, mt]);
+  const x = d3.scaleBand(d3.range(1, 13), [ml, ml + iw]).paddingInner(0.22).paddingOuter(0.1);
+  const step = x.step();
+  const rows = d3.range(12).map((i) => ({ m: i + 1, p: s.p[i], t: s.t[i], season: s.season[i] }));
+
+  svg.append('g').selectAll('rect').data(rows.filter((r) => r.season === s.seasonName)).join('rect')
+    .attr('x', (r) => x(r.m) - (step * x.paddingInner()) / 2).attr('width', step)
+    .attr('y', mt).attr('height', ih).attr('fill', 'var(--season)');
+  const g = svg.append('g');
+  g.selectAll('line').data(pTicks).join('line').attr('x1', ml).attr('x2', ml + iw)
+    .attr('y1', (v) => yP(v)).attr('y2', (v) => yP(v)).attr('stroke', 'var(--grid)');
+  g.selectAll('text.lp').data(pTicks).join('text').attr('class', 'cb-tick lp')
+    .attr('x', ml - 6).attr('y', (v) => yP(v)).attr('dy', '0.32em').attr('text-anchor', 'end').text((v) => v);
+  g.selectAll('text.lt').data(tTicks).join('text').attr('class', 'cb-tick lt')
+    .attr('x', ml + iw + 6).attr('y', (v) => yT(v)).attr('dy', '0.32em').text((v) => v);
+  const every = iw < 260 ? 2 : 1;
+  g.selectAll('text.lm').data(d3.range(1, 13).filter((m) => (m - 1) % every === 0)).join('text').attr('class', 'cb-tick lm')
+    .attr('x', (m) => x(m) + x.bandwidth() / 2).attr('y', H - 6).attr('text-anchor', 'middle').text((m) => m);
+  g.append('line').attr('x1', ml).attr('x2', ml + iw).attr('y1', mt + ih).attr('y2', mt + ih).attr('stroke', 'var(--axis)');
+
+  const bars = svg.append('g').selectAll('rect').data(rows).join('rect')
+    .attr('x', (r) => x(r.m)).attr('width', x.bandwidth())
+    .attr('y', (r) => yP(r.p)).attr('height', (r) => mt + ih - yP(r.p))
+    .attr('rx', Math.min(4, x.bandwidth() / 2)).attr('fill', 'var(--rain)');
+  svg.append('line').attr('x1', ml).attr('x2', ml + iw).attr('y1', yP(60)).attr('y2', yP(60))
+    .attr('stroke', 'var(--ref)').attr('stroke-width', 1.5).attr('stroke-dasharray', '4 3');
+  const line = d3.line().x((r) => x(r.m) + x.bandwidth() / 2).y((r) => yT(r.t));
+  svg.append('path').datum(rows).attr('d', line).attr('fill', 'none').attr('stroke', 'var(--temp)')
+    .attr('stroke-width', 2).attr('stroke-linecap', 'round').attr('stroke-linejoin', 'round');
+  const dots = svg.append('g').selectAll('circle').data(rows).join('circle')
+    .attr('cx', (r) => x(r.m) + x.bandwidth() / 2).attr('cy', (r) => yT(r.t)).attr('r', 2.5).attr('fill', 'var(--temp)');
+
+  const tip = document.createElement('div');
+  tip.className = 'cb-tip'; tip.hidden = true; box.appendChild(tip);
+  svg.append('rect').attr('x', ml).attr('y', mt).attr('width', iw).attr('height', ih).attr('fill', 'transparent')
+    .on('pointermove', (ev) => {
+      const [px] = d3.pointer(ev);
+      const m = Math.max(1, Math.min(12, Math.floor((px - ml) / (iw / 12)) + 1));
+      const r = rows[m - 1];
+      bars.attr('opacity', (d) => (d.m === m ? 1 : 0.45));
+      dots.attr('r', (d) => (d.m === m ? 4 : 2.5));
+      const hd = el('div', `${m} 月 · ${r.season}`); hd.className = 'cb-tip-h';
+      tip.replaceChildren(hd, el('div', `降水 ${r.p} mm`), el('div', `氣溫 ${r.t.toFixed(1)}℃`));
+      tip.hidden = false;
+      const tw = tip.offsetWidth, cx = x(m) + x.bandwidth() / 2;
+      let left = cx + 10;
+      if (left + tw > W) left = cx - 10 - tw;
+      tip.style.left = Math.max(0, left) + 'px'; tip.style.top = mt + 'px';
+    })
+    .on('pointerleave', () => { tip.hidden = true; bars.attr('opacity', 1); dots.attr('r', 2.5); });
+}
+
+function render() {
+  tabs.forEach((b) => b.setAttribute('aria-selected', String(b.dataset.sector === sector)));
+  const inSector = SUM.filter((s) => s.sector === sector);
+  document.querySelector('.cb-lat').textContent = inSector[0].lat;
+  document.querySelector('.cb-width').textContent = (REFS[inSector[0].site] || {}).plain_width || '—';
+
+  document.querySelectorAll('.cb-card').forEach((card) => {
+    const s = inSector.find((r) => r.band === card.dataset.band);
+    const box = card.querySelector('.cb-chart');
+    if (!s) { card.hidden = true; box.replaceChildren(); return; }
+    card.hidden = false;
+    card.querySelector('.cb-k').textContent = s.koppen;
+    card.querySelector('.cb-stats').replaceChildren(
+      txt('年降水 '), el('b', String(s.annual)), txt(' mm · 年均溫 '), el('b', String(s.meanT)),
+      txt(`℃ · ${s.seasonName} `), el('b', String(s.share)), txt('%'));
+    const k = s.koppen;
+    let why;
+    if (k[0] === 'B') why = `年降水低於乾燥門檻 ${s.bTh} mm → 半乾旱／乾旱`;
+    else if (k[0] === 'C') why = `最冷月 ${s.coldest}℃，低於 18℃ → 按溫度歸 C；實為熱帶山地`;
+    else {
+      why = `最乾月 ${s.driestMonth} 月 ${s.driest} mm`;
+      if (k === 'Af') why += ' ≥ 60 → 全年無乾月';
+      else if (k === 'Am') why += `，低於 60 但高於季風門檻 ${s.amTh} → 短乾季被雨量撐住`;
+      else why += `，低於季風門檻 ${s.amTh} → 有真正的乾季`;
+    }
+    card.querySelector('.cb-why').textContent = why;
+    drawChart(box, s);
+    const ref = REFS[s.site];
+    const parts = [];
+    if (ref) {
+      if (ref.precip_range) parts.push(ref.precip_range + ' mm');
+      if (ref.temp_range) parts.push(ref.temp_range.includes('（') ? ref.temp_range.replace('（', '℃（') : ref.temp_range + '℃');
+      if (ref.season_note) parts.push(ref.season_note);
+      if (ref.koppen_note) parts.push(ref.koppen_note);
+    }
+    card.querySelector('.cb-ref').textContent = parts.length ? '詞條：' + parts.join(' · ') : '';
+  });
+
+  document.querySelector('.cb-table tbody').replaceChildren(...SUM.map((s) => {
+    const tr = document.createElement('tr');
+    tr.dataset.sector = s.sector;
+    if (s.sector === sector) tr.classList.add('on');
+    [[s.site, ''], [s.koppen, ''], [s.annual, 'num'], [s.meanT, 'num'], [s.driest, 'num'], [s.share, 'num']]
+      .forEach(([v, c]) => { const td = el('td', String(v)); if (c) td.className = c; tr.appendChild(td); });
+    return tr;
+  }));
+}
+
+function select(sec) {
+  sector = sec;
+  const id = tabs.find((b) => b.dataset.sector === sec).dataset.id;
+  history.replaceState(null, '', '#' + id);
+  render();
+}
+tabs.forEach((b) => b.addEventListener('click', () => select(b.dataset.sector)));
+document.querySelector('.cb-table tbody').addEventListener('click', (e) => {
+  const tr = e.target.closest('tr[data-sector]');
+  if (!tr) return;
+  select(tr.dataset.sector);
+  document.querySelector('.cb-tabs').scrollIntoView({ block: 'start', behavior: 'smooth' });
+});
+window.addEventListener('hashchange', () => { const s = byId[location.hash.slice(1)]; if (s && s !== sector) { sector = s; render(); } });
+let lastW = 0;
+new ResizeObserver(() => { const w = document.querySelector('.cb-grid').clientWidth; if (w !== lastW) { lastW = w; render(); } })
+  .observe(document.querySelector('.cb-grid'));
+render();
+</script>
+</body>
+</html>
